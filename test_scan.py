@@ -3,19 +3,25 @@ from threading import Thread
 import time
 
 reseau = "192.168.10."
-current_ip = 0
+digit_to_scan = 0
+current_ip_scanned = 0
 
-
-
-
-while current_ip < 255:
+def scan(adresse):
+    global current_ip_scanned
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(0.3)
+    s.settimeout(5)
     try:
-        s.connect((reseau + str(current_ip), 80))
+        s.connect((adresse, 80))
     except socket.error:
         pass
     else:
-        print(reseau + str(current_ip) + " ouvert !")
+        print(adresse + " ouvert !")
 
-    current_ip += 1
+while digit_to_scan < 255:
+    current_ip = reseau + str(digit_to_scan)
+    t = Thread(target=scan, args=(current_ip,))
+    t.start()
+    digit_to_scan += 1
+
+t.join()
+print("Finish !")
