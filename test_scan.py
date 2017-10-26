@@ -1,6 +1,5 @@
-import socket, os
+import socket
 from threading import Thread
-import time
 
 reseau = "192.168.10."
 digit_to_scan = 0

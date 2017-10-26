@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 from PySide import QtGui, QtCore
+from threading import Thread
+import socket
 
 class WEBFinder(QtGui.QWidget):
     def __init__(self):
@@ -41,13 +44,40 @@ class WEBFinder(QtGui.QWidget):
         self.liste_ip.itemDoubleClicked.connect(self.start)
 
     def start(self):
-        print("coucou")
+        reseau = "192.168.10."
+        digit_to_scan = 0
+        current_ip_scanned = 0
+
+        def scan(adresse):
+            global current_ip_scanned
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(5)
+            try:
+                s.connect((adresse, 80))
+            except socket.error:
+                pass
+            else:
+                print(adresse + " ouvert !")
+                self.liste_ip.addItem(adresse)
+
+        while digit_to_scan < 255:
+            current_ip = reseau + str(digit_to_scan)
+            t = Thread(target=scan, args=(current_ip,))
+            t.start()
+            digit_to_scan += 1
+
+        t.join()
+        print("Finish !")
 
     def reset(self):
         self.liste_ip.clear()
         self.scan_ip.clear()
 
-app = QtGui.QApplication([])
-fenetre = WEBFinder()
-fenetre.show()
-app.exec_()
+def main():
+    app = QtGui.QApplication([])
+    fenetre = WEBFinder()
+    fenetre.show()
+    app.exec_()
+
+if __name__ == "__main__":
+    main()
