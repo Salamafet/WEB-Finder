@@ -10,6 +10,7 @@ class WEBFinder(QtGui.QWidget):
         super(WEBFinder, self).__init__()
 
         self.setWindowTitle("WEB Finder")
+        self.setWindowIcon(QtGui.QIcon("logo.ico"))
         self.setFocus()
         self.Ui()
 
