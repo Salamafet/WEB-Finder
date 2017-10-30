@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from PySide import QtGui, QtCore
 from threading import Thread
-import socket, re
+#from functools import partial
+import socket, re, webbrowser
 
 class WEBFinder(QtGui.QWidget):
+
     def __init__(self):
         super(WEBFinder, self).__init__()
 
@@ -14,15 +16,17 @@ class WEBFinder(QtGui.QWidget):
     def Ui(self):
         layout = QtGui.QGridLayout(self)
 
-        self.lbl_instruction = QtGui.QLabel("Sub network:")
+        self.lbl_instruction = QtGui.QLabel("Sub network to scan:")
 
         self.scan_ip = QtGui.QLineEdit(self)
         self.scan_ip.setPlaceholderText("Example: 192.168.1.0")
         self.scan_ip.textChanged.connect(self.enableStart)
 
         self.liste_ip = QtGui.QListWidget(self)
-        self.liste_ip.addItem("IP N°1")
-        self.liste_ip.addItem("IP N°2")
+        #self.liste_ip.itemDoubleClicked.connect(partial(self.browse, self.liste_ip.currentItem()))
+        self.liste_ip.itemDoubleClicked.connect(self.browse)
+        # self.liste_ip.addItem("10.0.0.200 (80)")
+        # self.liste_ip.addItem("192.168.150.13 (443)")
 
         self.btn_start = QtGui.QPushButton("START SCAN", self)
         self.btn_start.setDisabled(True)
@@ -44,9 +48,11 @@ class WEBFinder(QtGui.QWidget):
 
         self.btn_start.clicked.connect(self.start)
         self.btn_reset.clicked.connect(self.reset)
-        self.liste_ip.itemDoubleClicked.connect(self.start)
 
     def start(self):
+        self.btn_start.setVisible(False)
+        self.btn_reset.setVisible(False)
+        self.prg_etat.setVisible(True)
 
         sub_network = self.scan_ip.text()
         if(not re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", sub_network)):
@@ -59,6 +65,7 @@ class WEBFinder(QtGui.QWidget):
             sub_network = sub_network.split(".")
             sub_network = sub_network[0] + "." + sub_network[1] + "." + sub_network[2] + "."
             digit_to_scan = 0
+            global total_ip_found
             total_ip_found = 0
 
             def scan(adresse):
@@ -70,7 +77,7 @@ class WEBFinder(QtGui.QWidget):
                     pass
                 else:
                     print(adresse + " open !")
-                    self.liste_ip.addItem(adresse)
+                    self.liste_ip.addItem(adresse + " (80)")
                     global total_ip_found
                     total_ip_found += 1
 
@@ -88,6 +95,10 @@ class WEBFinder(QtGui.QWidget):
                 msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
                 msgbox.exec_()
             print("Finish !")
+            self.btn_start.setVisible(True)
+            self.btn_reset.setVisible(True)
+            self.prg_etat.setVisible(False)
+
 
     def reset(self):
         self.liste_ip.clear()
@@ -97,6 +108,18 @@ class WEBFinder(QtGui.QWidget):
         if(len(self.scan_ip.text()) > 0):
             self.btn_start.setDisabled(False)
 
+    def browse(self):
+        adresse = self.liste_ip.currentItem().text()
+        adresse = adresse.split(" ")
+        port = adresse[1]
+        adresse = adresse[0]
+        port = port.split("(")
+        port = port[1]
+        port = port.split(")")
+        port = port[0]
+        webbrowser.open('http://' + adresse + ":" + port)
+
+
 def main():
     app = QtGui.QApplication([])
     fenetre = WEBFinder()
@@ -104,4 +127,5 @@ def main():
     app.exec_()
 
 if __name__ == "__main__":
+    total_ip_found = 0 #Variable défini à cet endroit pour accès global
     main()
